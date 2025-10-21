@@ -1,0 +1,2 @@
+docker exec -i pg_local psql -U admin -d kurs_db -f /scripts/01_create_tables.sql
+docker exec -i pg_local psql -U admin -d kurs_db -f /scripts/02_insert_data.sql

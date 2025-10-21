@@ -1,0 +1,5 @@
+.idea
+venv
+db-data
+zabbix-postgres-data
+zabbix_server_data
