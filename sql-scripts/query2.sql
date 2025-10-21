@@ -1,0 +1,1 @@
+select id, AVG(id) over(partition by tags order by id) from stackoverflow_questions sq

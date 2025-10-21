@@ -1,0 +1,74 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql_local
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: kurs_db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./db-data:/var/lib/mysql
+      - ./sql-scripts:/docker-entrypoint-initdb.d
+
+  zabbix-db:
+    image: postgres:15
+    container_name: mysql_zabbix_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_pass
+      POSTGRES_DB: zabbix
+    volumes:
+      - ./zabbix-postgres-data:/var/lib/postgresql/data
+
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:ubuntu-7.0-latest
+    container_name: mysql_zabbix_server
+    restart: unless-stopped
+    depends_on:
+      - zabbix-db
+    environment:
+      DB_SERVER_HOST: zabbix-db
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_pass
+    volumes:
+      - ./zabbix_server_data:/var/lib/zabbix
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql:ubuntu-7.0-latest
+    container_name: mysql_zabbix_web
+    restart: unless-stopped
+    depends_on:
+      - zabbix-server
+      - zabbix-db
+    environment:
+      ZBX_SERVER_HOST: zabbix-server
+      DB_SERVER_HOST: zabbix-db
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: zabbix_pass
+      PHP_TZ: "Europe/Berlin"
+    ports:
+      - "8080:8080"
+
+  zabbix-agent2:
+    image: zabbix/zabbix-agent2:ubuntu-7.0-latest
+    container_name: mysql_zabbix_agent2
+    restart: unless-stopped
+    depends_on:
+      - zabbix-server
+      - db
+    environment:
+      ZBX_HOSTNAME: mysql_local
+      ZBX_SERVER_HOST: zabbix-server
+      ZBX_PASSIVE_ALLOW: "true"
+      ZBX_ACTIVE_ALLOW: "true"
+    ports:
+      - "10050:10050"
+
+networks:
+  default:
+    driver: bridge

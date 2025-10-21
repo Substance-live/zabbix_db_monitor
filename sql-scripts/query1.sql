@@ -1,0 +1,1 @@
+select * from stackoverflow_questions sq join stackoverflow_questions sq2 using (tags)
